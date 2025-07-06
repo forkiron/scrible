@@ -1,0 +1,168 @@
+@import url("https://fonts.googleapis.com/css2?family=Mynerve&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Arimo:ital,wght@0,400..700;1,400..700&family=Caveat:wght@400..700&family=Raleway:ital,wght@0,100..900;1,100..900&family=Varela+Round&display=swap");
+
+@import "tailwindcss";
+
+.bg-lined-paper {
+  background-color: #f0ecd1;
+  background-image: repeating-linear-gradient(
+      to bottom,
+      transparent,
+      transparent 29px,
+      #c0c0c0 30px
+    ),
+    linear-gradient(to right, #f0d0d0 2px, transparent 2px);
+  background-repeat: repeat-y, no-repeat, repeat-y;
+  background-position: 0 90px, 75px 0, 0 0;
+  background-size: 100% 30px, 100% 100%, 30px 30px;
+}
+
+.sticky-details {
+  will-change: clip-path;
+  transition: 0.8s;
+  clip-path: polygon(
+    0 0,
+    100% 0,
+    100% calc(100% - 20px),
+    calc(100% - 20px) 100%,
+    0 100%
+  );
+  position: relative;
+}
+
+.sticky-details::before {
+  content: "";
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  background-color: rgb(118, 180, 239);
+  bottom: 0;
+  right: 0;
+  border-top-left-radius: 8px;
+  transition: 0.8s;
+}
+.sticky-details:hover::before {
+  width: 0px;
+  height: 0px;
+  opacity: 0; /* fade out the folded corner */
+}
+
+.sticky-details:hover::before {
+  width: 0px;
+  height: 0px;
+}
+
+.sticky-details:hover {
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 100% 100%, 0 100%);
+}
+.sticky-details-left {
+  will-change: clip-path;
+  transition: 0.8s;
+  clip-path: polygon(
+    0 0,
+    100% 0,
+    100% 100%,
+    calc(0% + 20px) 100%,
+    0 calc(100% - 20px)
+  );
+  position: relative;
+}
+
+.sticky-details-left::before {
+  content: "";
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  background-color: rgb(232, 231, 157);
+  bottom: 0;
+  left: 0; /* flip from right to left */
+  border-top-right-radius: 8px; /* flip from border-top-left-radius */
+  transition: 0.8s;
+}
+
+.sticky-details-left:hover::before {
+  width: 0px;
+  height: 0px;
+  opacity: 0;
+}
+
+.sticky-details-left:hover {
+  clip-path: polygon(
+    0 0,
+    100% 0,
+    100% 100%,
+    0 100%,
+    0 100% /* keep same number of points */
+  );
+}
+
+.start-sizing {
+  width: calc(var(--spacing) * 80);
+}
+.start-sizing:hover {
+  width: calc(var(--spacing) * 85);
+}
+
+.start-text {
+  font-size: var(--text-3xl) /* 2.25rem = 36px */;
+  line-height: var(
+    --tw-leading,
+    var(--text-4xl--line-height) /* calc(2.5 / 2.25) ≈ 1.1111 */
+  );
+  font-weight: bold;
+}
+
+.start-text:hover {
+  font-size: var(--text-4xl) /* 2.25rem = 36px */;
+  line-height: var(
+    --tw-leading,
+    var(--text-4xl--line-height) /* calc(2.5 / 2.25) ≈ 1.1111 */
+  );
+  font-weight: bold;
+  text-decoration: underline;
+}
+
+.tape {
+  position: absolute;
+  transform: rotate(45deg);
+  background: repeating-linear-gradient(
+    45deg,
+    #f7c61a 0,
+    #f7c61a 5px,
+    #f7c61a 5px,
+    #000000 10px,
+    #000000 10px,
+    rgb(0, 0, 0) 15px
+  );
+}
+.fade-in-up {
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeInUp 0.8s ease-out forwards;
+}
+
+@keyframes fadeInUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.lined-paper-box {
+  background: repeating-linear-gradient(
+    to bottom,
+    white,
+    white 24px,
+    #cbd5e1 25px
+  );
+  line-height: 24px;
+  padding: 1rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 6px rgb(0 0 0 / 0.1);
+  font-family: monospace;
+  font-size: 0.9rem;
+  white-space: pre-wrap;
+  overflow-y: auto;
+  max-height: 16rem;
+  color: black;
+}
