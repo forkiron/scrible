@@ -16,6 +16,7 @@ const Digi: React.FC = () => {
   const [isDragOver, setIsDragOver] = useState(false);
   const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null);
   const [extractedText, setExtractedText] = useState<string | null>(null);
+  const [isCameraOpen, setIsCameraOpen] = useState(false);
   const location = useLocation();
   const selectedStyle = location.state?.style || "text";
   const navigate = useNavigate();
@@ -52,6 +53,66 @@ const Digi: React.FC = () => {
       link.click();
 
       document.body.removeChild(hiddenContainer);
+    });
+  };
+
+  const convertPdfToImage = async (file: File): Promise<File> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        try {
+          if (!e.target?.result || !(e.target.result instanceof ArrayBuffer)) {
+            reject(new Error("Failed to read PDF file"));
+            return;
+          }
+
+          // Dynamically import pdf.js
+          const pdfjsLib = await import("pdfjs-dist");
+          // Use jsdelivr CDN which is more reliable
+          pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
+
+          const pdf = await pdfjsLib.getDocument({ data: e.target.result })
+            .promise;
+          const page = await pdf.getPage(1); // Get first page
+
+          const viewport = page.getViewport({ scale: 2.0 });
+          const canvas = document.createElement("canvas");
+          const context = canvas.getContext("2d");
+
+          if (!context) {
+            reject(new Error("Could not get canvas context"));
+            return;
+          }
+
+          canvas.height = viewport.height;
+          canvas.width = viewport.width;
+
+          await page.render({
+            canvasContext: context,
+            viewport: viewport,
+            canvas: canvas,
+          }).promise;
+
+          canvas.toBlob(
+            (blob) => {
+              if (blob) {
+                const imageFile = new File([blob], "pdf-page-1.jpg", {
+                  type: "image/jpeg",
+                });
+                resolve(imageFile);
+              } else {
+                reject(new Error("Failed to convert PDF to image"));
+              }
+            },
+            "image/jpeg",
+            0.95
+          );
+        } catch (error) {
+          reject(error);
+        }
+      };
+      reader.onerror = reject;
+      reader.readAsArrayBuffer(file);
     });
   };
 
@@ -158,12 +219,29 @@ const Digi: React.FC = () => {
     setIsDragOver(false);
   };
 
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+  const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setIsDragOver(false);
 
     const file = e.dataTransfer.files[0];
-    if (file && file.type.startsWith("image/")) {
+    if (
+      file &&
+      (file.type.startsWith("image/") || file.type === "application/pdf")
+    ) {
+      let fileToUpload = file;
+
+      // Convert PDF to image if needed
+      if (file.type === "application/pdf") {
+        try {
+          setExtractedText("Converting PDF to image...");
+          fileToUpload = await convertPdfToImage(file);
+        } catch (error) {
+          console.error("Error converting PDF:", error);
+          setExtractedText("Failed to convert PDF. Please try an image file.");
+          return;
+        }
+      }
+
       const reader = new FileReader();
       reader.onloadend = () => {
         const imgDataUrl = reader.result as string;
@@ -171,20 +249,40 @@ const Digi: React.FC = () => {
         setCapturedPhotoUrl(imgDataUrl);
         setIsHide(true);
       };
-      reader.readAsDataURL(file);
+      reader.readAsDataURL(fileToUpload);
 
-      console.log("Dropped image file:", file);
+      console.log(
+        "Dropped file:",
+        file.type === "application/pdf" ? "PDF" : "image"
+      );
 
-      uploadImage(file);
+      uploadImage(fileToUpload);
     } else {
-      console.warn("Dropped file is not an image");
-      setExtractedText("Dropped file is not an image.");
+      console.warn("Dropped file is not an image or PDF");
+      setExtractedText("Dropped file is not an image or PDF.");
     }
   };
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file && file.type.startsWith("image/")) {
+    if (
+      file &&
+      (file.type.startsWith("image/") || file.type === "application/pdf")
+    ) {
+      let fileToUpload = file;
+
+      // Convert PDF to image if needed
+      if (file.type === "application/pdf") {
+        try {
+          setExtractedText("Converting PDF to image...");
+          fileToUpload = await convertPdfToImage(file);
+        } catch (error) {
+          console.error("Error converting PDF:", error);
+          setExtractedText("Failed to convert PDF. Please try an image file.");
+          return;
+        }
+      }
+
       const reader = new FileReader();
       reader.onloadend = () => {
         const imgDataUrl = reader.result as string;
@@ -192,14 +290,17 @@ const Digi: React.FC = () => {
         setCapturedPhotoUrl(imgDataUrl);
         setIsHide(true);
       };
-      reader.readAsDataURL(file);
+      reader.readAsDataURL(fileToUpload);
 
-      console.log("Selected image file:", file);
+      console.log(
+        "Selected file:",
+        file.type === "application/pdf" ? "PDF" : "image"
+      );
 
-      uploadImage(file);
+      uploadImage(fileToUpload);
     } else {
-      console.warn("Selected file is not an image");
-      setExtractedText("Selected file is not an image.");
+      console.warn("Selected file is not an image or PDF");
+      setExtractedText("Selected file is not an image or PDF.");
     }
   };
 
@@ -251,12 +352,16 @@ const Digi: React.FC = () => {
             >
               {extractedText}
             </div>
-          ) : !isHide ? (
+          ) : isCameraOpen && !isHide ? (
             <img
               className="h-64 transition-opacity duration-500"
               src="http://localhost:5000/video_feed"
               alt="Video feed"
             />
+          ) : !isHide ? (
+            <div className="h-64 w-96 text-2xl flex items-center justify-cente px-5 bg-gray-100 rounded-lg">
+              <p className="text-gray-500">Click "Open Camera" to start</p>
+            </div>
           ) : (
             <img
               className="h-64 transition-opacity duration-500"
@@ -299,6 +404,15 @@ const Digi: React.FC = () => {
         </div>
       </div>
 
+      {!isCameraOpen && !isHide && (
+        <button
+          onClick={() => setIsCameraOpen(true)}
+          className="px-6 py-3 bg-blue-500 hover:bg-blue-60 text-xl cursor-pointer text-white font-semibold rounded-lg shadow-lg transition-all duration-300 hover:scale-105 fade-in-up"
+        >
+          Open Camera
+        </button>
+      )}
+
       <div
         className={`w-96 h-60 flex flex-col items-center justify-center border-4 rounded-2xl shadow-lg fade-in-up transition-all duration-700
         ${
@@ -333,8 +447,8 @@ const Digi: React.FC = () => {
                 d="M3 16.5V18a2.25 2.25 0 002.25 2.25h13.5A2.25 2.25 0 0021 18v-1.5M7.5 12l4.5-4.5m0 0L16.5 12m-4.5-4.5V18"
               />
             </svg>
-            <p className="text-gray-600 font-semibold text-center">
-              Drop an image
+            <p className="text-gray-600 font-semibold text-2xl text-center">
+              Drop an image or PDF
             </p>
             <p className="text-gray-400 text-sm mt-1">or click to browse</p>
           </div>
@@ -342,7 +456,7 @@ const Digi: React.FC = () => {
         <input
           type="file"
           id="fileInput"
-          accept="image/*"
+          accept="image/*,application/pdf"
           onChange={handleFileSelect}
           className="hidden"
         />
