@@ -4,6 +4,11 @@ import threading
 import numpy as np
 from flask_cors import CORS
 import google.generativeai as genai
+import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 
 app = Flask(__name__)
@@ -14,6 +19,9 @@ class VideoCamera(object):
         self.video = cv2.VideoCapture(0)
         self.lock = threading.Lock()
         self.current_frame = None
+        if not self.video.isOpened():
+            print("[WARNING] Camera not opened. Trying to open...")
+            self.video.open(0)
 
     def __del__(self):
         self.video.release()
@@ -30,10 +38,23 @@ class VideoCamera(object):
 
     def capture_photo(self, filename="captured_photo.jpg"):
         with self.lock:
-            if self.current_frame is not None:
-                cv2.imwrite(filename, self.current_frame)
+            if not self.video.isOpened():
+                print("[ERROR] Camera is not opened")
+                return False
+            ret, frame = self.video.read()
+            if not ret:
+                print("[ERROR] Failed to read frame from camera")
+                return False
+            if frame is None:
+                print("[ERROR] Frame is None")
+                return False
+            try:
+                cv2.imwrite(filename, frame)
+                self.current_frame = frame
+                print(f"[INFO] Successfully captured photo to {filename}")
                 return True
-            else:
+            except Exception as e:
+                print(f"[ERROR] Failed to write image: {e}")
                 return False
 
 camera = VideoCamera()
@@ -57,12 +78,19 @@ def video_feed():
 
 @app.route('/capture', methods=['POST'])
 def capture():
-    success = camera.capture_photo("captured_photo.jpg")
-    if not success:
-        return jsonify({"status": "error", "message": "No frame available"}), 500
+    print("[INFO] Capture endpoint called")
+    try:
+        success = camera.capture_photo("captured_photo.jpg")
+        if not success:
+            print("[ERROR] Capture failed")
+            return jsonify({"status": "error", "message": "Failed to capture frame from camera. Make sure camera is connected and not in use by another application."}), 500
 
-    process_image("captured_photo.jpg")
-    return jsonify({"status": "success", "message": "Photo captured and preprocessed"})
+        print("[INFO] Processing captured image")
+        process_image("captured_photo.jpg")
+        return jsonify({"status": "success", "message": "Photo captured and preprocessed"})
+    except Exception as e:
+        print(f"[ERROR] Exception in capture endpoint: {e}")
+        return jsonify({"status": "error", "message": f"Internal server error: {str(e)}"}), 500
 
 @app.route('/upload', methods=['POST'])
 def upload():
@@ -104,7 +132,10 @@ def get_step_thresh():
 
 @app.route('/analyze', methods=['GET'])
 def analyze():
-    GEMINI_API_KEY = "AIzaSyAA3nI6Pyj6sS_BW4l7mWfQUBxpFNI2Rdg"
+    GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
+    if not GEMINI_API_KEY:
+        print("[ERROR] GEMINI_API_KEY environment variable not set")
+        return jsonify({"status": "error", "message": "GEMINI_API_KEY environment variable not set"}), 500
     print("[INFO] Starting /analyze endpoint")
 
     try:
@@ -127,14 +158,14 @@ def analyze():
             print("[ERROR] Failed to encode image step_thresh.jpg")
             return jsonify({"status": "error", "message": "Image encoding failed"}), 500
 
-        print("[INFO] Initializing Gemini model")
-        model = genai.GenerativeModel('gemini-1.5-pro-latest')
+        print("[INFO] Initializing Gemini model: gemini-2.5-flash")
+        model = genai.GenerativeModel('gemini-2.5-flash')
 
         print("[INFO] Sending request to Gemini with image + prompt")
         response = model.generate_content(
             [
                 {"mime_type": "image/jpeg", "data": encoded_image.tobytes()},
-                "Please analyze this image and provide all the text or details you can find. only reply with the text you see and ignore obscurities."
+                "Extract all the text from this image. Only return the text you see, nothing else. Do not add any explanations or descriptions."
             ]
         )
 

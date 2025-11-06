@@ -28,13 +28,10 @@ const Digi: React.FC = () => {
     hiddenContainer.style.top = "-9999px";
     hiddenContainer.style.left = "-9999px";
 
-    // Clone content from your text box
     hiddenContainer.innerHTML = textBoxRef.current.innerHTML;
 
-    // Match styles from the live text box
     const computedStyles = getComputedStyle(textBoxRef.current);
 
-    // Clone background (lined paper) and other styles
     hiddenContainer.style.backgroundImage = computedStyles.backgroundImage;
     hiddenContainer.style.backgroundSize = computedStyles.backgroundSize;
     hiddenContainer.style.backgroundRepeat = computedStyles.backgroundRepeat;
@@ -46,7 +43,6 @@ const Digi: React.FC = () => {
     hiddenContainer.style.borderRadius = computedStyles.borderRadius;
     hiddenContainer.style.boxShadow = computedStyles.boxShadow;
 
-    // Append hidden container to DOM
     document.body.appendChild(hiddenContainer);
 
     html2canvas(hiddenContainer, { scale: 2 }).then((canvas) => {
@@ -81,7 +77,6 @@ const Digi: React.FC = () => {
           );
           setIsHide(true);
 
-          // Trigger analyze request automatically here
           fetch("http://localhost:5000/analyze")
             .then((res) => res.json())
             .then((analyzeData) => {
@@ -110,7 +105,6 @@ const Digi: React.FC = () => {
       });
   };
 
-  // Capture photo + analyze
   const ChangeCamera = () => {
     setIsClicked(true);
 
@@ -125,7 +119,6 @@ const Digi: React.FC = () => {
             `http://localhost:5000/captured_photo.jpg?${Date.now()}`
           );
 
-          // Trigger analyze request automatically here
           fetch("http://localhost:5000/analyze")
             .then((res) => res.json())
             .then((analyzeData) => {
