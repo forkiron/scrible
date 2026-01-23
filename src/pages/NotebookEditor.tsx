@@ -9,9 +9,9 @@ import { useAuth } from "../context/AuthContext";
 import {
   appendToNotebookText,
   getNotebookById,
-  SavedNotebook,
   updateNotebook,
 } from "../utils/notebookStorage";
+import type { SavedNotebook } from "../utils/notebookStorage";
 
 type PaperStyle =
   | "classic"
@@ -62,6 +62,7 @@ const NotebookEditor = () => {
   const [text, setText] = useState("");
   const [paperStyle, setPaperStyle] = useState<PaperStyle>("classic");
   const [fontStyle, setFontStyle] = useState<FontStyle>("text");
+  const [isLoading, setIsLoading] = useState(true);
 
   const [isDragOver, setIsDragOver] = useState(false);
   const [isAppending, setIsAppending] = useState(false);
@@ -70,6 +71,7 @@ const NotebookEditor = () => {
   const previewRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
+    setIsLoading(true);
     if (!user) {
       navigate("/login");
       return;
@@ -88,6 +90,7 @@ const NotebookEditor = () => {
     setText(nb.text);
     setPaperStyle((nb.paperStyle as PaperStyle) || "classic");
     setFontStyle((nb.fontStyle as FontStyle) || "text");
+    setIsLoading(false);
   }, [id, user, navigate]);
 
   const paperClass = useMemo(() => getPaperStyleClass(paperStyle), [paperStyle]);
@@ -257,7 +260,13 @@ const NotebookEditor = () => {
     }
   };
 
-  if (!user || !notebook) return null;
+  if (isLoading || !user || !notebook) {
+    return (
+      <div className="min-h-screen w-full bg-lined-paper flex items-center justify-center">
+        <p className="text-xl font-mynerve text-zinc-600">Loading notebook...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen w-full bg-lined-paper relative overflow-x-hidden font-mynerve">
