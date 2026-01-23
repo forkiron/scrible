@@ -14,8 +14,16 @@
       #d1d5db 32px
     ),
     /* Vertical margin line */
-    linear-gradient(to right, transparent 79px, #fca5a5 80px, #fca5a5 81px, transparent 82px);
-  background-size: 100% 32px, 100% 100%;
+    linear-gradient(
+        to right,
+        transparent 79px,
+        #fca5a5 80px,
+        #fca5a5 81px,
+        transparent 82px
+      );
+  background-size:
+    100% 32px,
+    100% 100%;
 }
 
 .font-mynerve {
@@ -220,59 +228,91 @@
 /* Multiple Notebook Paper Styles */
 .paper-classic {
   background-color: #f4f1de;
-  background-image: 
+  background-image:
     repeating-linear-gradient(
       to bottom,
       transparent,
       transparent 31px,
       #d1d5db 32px
     ),
-    linear-gradient(to right, transparent 79px, #fca5a5 80px, #fca5a5 81px, transparent 82px);
-  background-size: 100% 32px, 100% 100%;
+    linear-gradient(
+      to right,
+      transparent 79px,
+      #fca5a5 80px,
+      #fca5a5 81px,
+      transparent 82px
+    );
+  background-size:
+    100% 32px,
+    100% 100%;
 }
 
 .paper-blue {
   background-color: #e8f4f8;
-  background-image: 
+  background-image:
     repeating-linear-gradient(
       to bottom,
       transparent,
       transparent 31px,
       #a8d5e2 32px
     ),
-    linear-gradient(to right, transparent 79px, #4a90e2 80px, #4a90e2 81px, transparent 82px);
-  background-size: 100% 32px, 100% 100%;
+    linear-gradient(
+      to right,
+      transparent 79px,
+      #4a90e2 80px,
+      #4a90e2 81px,
+      transparent 82px
+    );
+  background-size:
+    100% 32px,
+    100% 100%;
 }
 
 .paper-green {
   background-color: #f0f8e8;
-  background-image: 
+  background-image:
     repeating-linear-gradient(
       to bottom,
       transparent,
       transparent 31px,
       #c8e6c9 32px
     ),
-    linear-gradient(to right, transparent 79px, #81c784 80px, #81c784 81px, transparent 82px);
-  background-size: 100% 32px, 100% 100%;
+    linear-gradient(
+      to right,
+      transparent 79px,
+      #81c784 80px,
+      #81c784 81px,
+      transparent 82px
+    );
+  background-size:
+    100% 32px,
+    100% 100%;
 }
 
 .paper-purple {
   background-color: #f3e5f5;
-  background-image: 
+  background-image:
     repeating-linear-gradient(
       to bottom,
       transparent,
       transparent 31px,
       #ce93d8 32px
     ),
-    linear-gradient(to right, transparent 79px, #ba68c8 80px, #ba68c8 81px, transparent 82px);
-  background-size: 100% 32px, 100% 100%;
+    linear-gradient(
+      to right,
+      transparent 79px,
+      #ba68c8 80px,
+      #ba68c8 81px,
+      transparent 82px
+    );
+  background-size:
+    100% 32px,
+    100% 100%;
 }
 
 .paper-grid {
   background-color: #fafafa;
-  background-image: 
+  background-image:
     repeating-linear-gradient(
       to bottom,
       transparent,
@@ -285,45 +325,67 @@
       transparent 39px,
       #e0e0e0 40px
     );
-  background-size: 100% 32px, 40px 100%;
+  background-size:
+    100% 32px,
+    40px 100%;
 }
 
 .paper-parchment {
   background-color: #f9f6f0;
-  background-image: 
+  background-image:
     repeating-linear-gradient(
       to bottom,
       transparent,
       transparent 31px,
       #d4c4a8 32px
     ),
-    linear-gradient(to right, transparent 79px, #c9a961 80px, #c9a961 81px, transparent 82px);
-  background-size: 100% 32px, 100% 100%;
+    linear-gradient(
+      to right,
+      transparent 79px,
+      #c9a961 80px,
+      #c9a961 81px,
+      transparent 82px
+    );
+  background-size:
+    100% 32px,
+    100% 100%;
 }
 
 .paper-minimal {
   background-color: #ffffff;
-  background-image: 
-    repeating-linear-gradient(
-      to bottom,
-      transparent,
-      transparent 31px,
-      #f0f0f0 32px
-    );
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent,
+    transparent 31px,
+    #f0f0f0 32px
+  );
   background-size: 100% 32px;
 }
 
 /* Text alignment with notebook lines */
+/* The margin line is at 79-82px from the container edge */
+/* Container has p-4 (16px padding), so text content area starts 16px in */
+/* Margin line ends at 82px from container edge */
+/* To be clearly to the right: need 82px + spacing from container edge */
+/* Since content area starts 16px in, padding-left should be: (82 + spacing) - 16 */
+/* Using 120px total from container edge = 16px (container padding) + 104px (text padding) */
 .notebook-text {
   line-height: 32px;
-  padding-top: 4px; /* Adjust to align baseline with first line */
-  padding-left: 95px !important; /* Start text to the right of margin line (margin line ends at 82px, container has 16px padding, so 95px ensures text is clearly to the right) */
+  padding-top: 20px; /* Adjust to align baseline with first line */
+  padding-left: 90px !important; /* 104px + 16px container padding = 120px from edge, clearly right of 82px margin */
   font-size: 16px; /* Adjustable but 16px works well with 32px line-height */
   margin-left: 0 !important; /* Ensure no margin interferes */
+  box-sizing: border-box;
 }
 
-.notebook-text p,
-.notebook-text {
+.notebook-text p {
   margin: 0;
   padding: 0;
+}
+
+/* Don't reset padding on .notebook-text itself - we need padding-left */
+.notebook-text {
+  margin: 0;
+  padding-right: 0;
+  padding-bottom: 0;
 }
