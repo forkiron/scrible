@@ -22,7 +22,7 @@ type PaperStyle =
   | "grid"
   | "parchment"
   | "minimal";
-type FontStyle = "handwritten" | "text";
+type FontStyle = "handwritten" | "text" | "mynerve" | "arimo" | "raleway";
 
 const paperOptions: { id: PaperStyle; name: string; emoji: string }[] = [
   { id: "classic", name: "Classic", emoji: "📓" },
@@ -32,6 +32,14 @@ const paperOptions: { id: PaperStyle; name: string; emoji: string }[] = [
   { id: "grid", name: "Grid", emoji: "📊" },
   { id: "parchment", name: "Parchment", emoji: "📜" },
   { id: "minimal", name: "Minimal", emoji: "📄" },
+];
+
+const fontOptions: { id: FontStyle; name: string; family: string }[] = [
+  { id: "handwritten", name: "Handwritten", family: "caveat, cursive" },
+  { id: "text", name: "Text", family: "varela round, sans-serif" },
+  { id: "mynerve", name: "Mynerve", family: "Mynerve, cursive" },
+  { id: "arimo", name: "Arimo", family: "Arimo, sans-serif" },
+  { id: "raleway", name: "Raleway", family: "Raleway, sans-serif" },
 ];
 
 const getPaperStyleClass = (style: string) => {
@@ -48,9 +56,8 @@ const getPaperStyleClass = (style: string) => {
 };
 
 const getFontFamily = (fontStyle: string) => {
-  return fontStyle === "handwritten"
-    ? "caveat, cursive"
-    : "varela round, sans-serif";
+  const font = fontOptions.find((f) => f.id === fontStyle);
+  return font ? font.family : "varela round, sans-serif";
 };
 
 const NotebookEditor = () => {
@@ -348,7 +355,7 @@ const NotebookEditor = () => {
                 value={text}
                 onChange={(e) => setText(e.target.value)}
                 className="w-full h-80 px-4 py-3 border-[2px] border-zinc-900 rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-purple-500"
-                style={{ fontFamily }}
+                style={{ fontFamily, lineHeight: '32px', paddingTop: '4px' }}
               />
               <p className="text-xs text-zinc-500 mt-2">
                 Tip: you can paste/modify anything here.
@@ -362,7 +369,7 @@ const NotebookEditor = () => {
                 className={`${paperClass} border-[2px] border-zinc-200 rounded-lg p-4 h-80 overflow-y-auto`}
                 style={{ fontFamily }}
               >
-                <p className="whitespace-pre-wrap text-sm">{text}</p>
+                <p className="notebook-text whitespace-pre-wrap">{text}</p>
               </div>
               <p className="text-xs text-zinc-500 mt-2">
                 This preview uses your selected paper + font.
@@ -375,24 +382,18 @@ const NotebookEditor = () => {
             <div>
               <p className="text-lg font-bold mb-3">Font style</p>
               <div className="flex gap-3 flex-wrap">
-                <button
-                  onClick={() => setFontStyle("handwritten")}
-                  className={`sketchy-button-white text-base px-5 py-2 ${
-                    fontStyle === "handwritten" ? "bg-purple-100" : ""
-                  }`}
-                  style={{ fontFamily: "caveat, cursive" }}
-                >
-                  Handwritten
-                </button>
-                <button
-                  onClick={() => setFontStyle("text")}
-                  className={`sketchy-button-white text-base px-5 py-2 ${
-                    fontStyle === "text" ? "bg-purple-100" : ""
-                  }`}
-                  style={{ fontFamily: "varela round, sans-serif" }}
-                >
-                  Text
-                </button>
+                {fontOptions.map((font) => (
+                  <button
+                    key={font.id}
+                    onClick={() => setFontStyle(font.id)}
+                    className={`sketchy-button-white text-base px-5 py-2 ${
+                      fontStyle === font.id ? "bg-purple-100" : ""
+                    }`}
+                    style={{ fontFamily: font.family }}
+                  >
+                    {font.name}
+                  </button>
+                ))}
               </div>
             </div>
 

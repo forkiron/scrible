@@ -37,7 +37,14 @@ const SavedNotebooks = () => {
   };
 
   const getFontFamily = (fontStyle: string) => {
-    return fontStyle === 'handwritten' ? 'caveat, cursive' : 'varela round, sans-serif';
+    const fontMap: Record<string, string> = {
+      handwritten: 'caveat, cursive',
+      text: 'varela round, sans-serif',
+      mynerve: 'Mynerve, cursive',
+      arimo: 'Arimo, sans-serif',
+      raleway: 'Raleway, sans-serif',
+    };
+    return fontMap[fontStyle] || 'varela round, sans-serif';
   };
 
   return (
@@ -137,7 +144,7 @@ const SavedNotebooks = () => {
                     className={`${getPaperStyleClass(notebook.paperStyle)} p-4 rounded-lg mb-4 h-48 overflow-y-auto border-2 border-zinc-200`}
                     style={{ fontFamily: getFontFamily(notebook.fontStyle) }}
                   >
-                    <p className="text-sm whitespace-pre-wrap">{notebook.text}</p>
+                    <p className="notebook-text whitespace-pre-wrap">{notebook.text}</p>
                   </div>
 
                   <div className="text-xs text-zinc-500 space-y-1">

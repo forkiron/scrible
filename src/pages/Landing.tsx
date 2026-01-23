@@ -50,28 +50,44 @@ const Landing = () => {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
           >
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold leading-[1.1] tracking-tight mb-6">
-              <span className="text-[#6d4da1] block lg:inline">AI Agents</span> <span className="hidden lg:inline">That</span>
-              <br className="hidden lg:block" />
-              <span className="lg:hidden">That</span> Increase <br />
-              Enrollment <br />
-              Across Campus.
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold leading-[1.2] tracking-tight mb-6 text-[#2ea9df]">
+              Making written communication accessible for everyone
             </h1>
           </motion.div>
           
           <motion.div 
-            className="space-y-4 mb-10 mx-auto lg:mx-0 max-w-xl"
+            className="space-y-4 mb-10 mx-auto lg:mx-0 max-w-2xl"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4, duration: 0.8 }}
           >
-            <p className="text-xl md:text-2xl font-bold leading-tight">
-              The agentic operating system for higher education.
-            </p>
-            <p className="text-base md:text-lg leading-relaxed opacity-90 font-medium">
-              Risely orchestrates AI agents across your university - 
-              optimizing operations, scaling support, & maximizing revenue.
-            </p>
+            <div className="space-y-4 text-base md:text-lg leading-relaxed">
+              <div>
+                <h2 className="text-xl md:text-2xl font-bold mb-3 text-zinc-800">Inspiration</h2>
+                <p className="mb-3">
+                  Handwriting is a skill that's easy to take for granted! However, many motor, muscular, neurological, and developmental health conditions impair individuals' abilities to write freely with pen and paper.
+                </p>
+                <p className="font-semibold mb-3">
+                  These disadvantaged populations deserve more than diversity: they deserve <span className="text-[#6d4da1]">inclusion</span>.
+                </p>
+                <p>
+                  Enabling ethical & effective education means using new innovations to meet the needs of all communities. Novel technologies like AI can allow the target population to engage with written activities in the same way as their able-bodied peers.
+                </p>
+              </div>
+              
+              <div className="pt-4">
+                <h2 className="text-xl md:text-2xl font-bold mb-3 text-zinc-800">What It Does</h2>
+                <p className="mb-3">
+                  <span className="font-bold">Scrible</span> extracts handwriting, written by someone with the aforementioned conditions, from an uploaded file, or from a photo captured using the device's webcam.
+                </p>
+                <p className="font-semibold mb-3">
+                  It will then transcribe the handwriting into a more <span className="text-[#2ea9df]">legible text</span>, allowing the user to effectively convey their ideas through written media!
+                </p>
+                <p className="text-base italic opacity-90">
+                  ✨ Making written communication accessible for everyone ✨
+                </p>
+              </div>
+            </div>
           </motion.div>
 
           <motion.div 

@@ -312,3 +312,18 @@
     );
   background-size: 100% 32px;
 }
+
+/* Text alignment with notebook lines */
+.notebook-text {
+  line-height: 32px;
+  padding-top: 4px; /* Adjust to align baseline with first line */
+  padding-left: 95px !important; /* Start text to the right of margin line (margin line ends at 82px, container has 16px padding, so 95px ensures text is clearly to the right) */
+  font-size: 16px; /* Adjustable but 16px works well with 32px line-height */
+  margin-left: 0 !important; /* Ensure no margin interferes */
+}
+
+.notebook-text p,
+.notebook-text {
+  margin: 0;
+  padding: 0;
+}

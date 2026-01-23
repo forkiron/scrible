@@ -24,6 +24,17 @@ const getPaperStyleClass = (style: string) => {
   return styleMap[style] || "paper-classic";
 };
 
+const getFontFamily = (fontStyle: string) => {
+  const fontMap: Record<string, string> = {
+    handwritten: 'caveat, cursive',
+    text: 'varela round, sans-serif',
+    mynerve: 'Mynerve, cursive',
+    arimo: 'Arimo, sans-serif',
+    raleway: 'Raleway, sans-serif',
+  };
+  return fontMap[fontStyle] || 'varela round, sans-serif';
+};
+
 const Digi: React.FC = () => {
   const [isClicked, setIsClicked] = useState(false);
   const [isHide, setIsHide] = useState(false);
@@ -37,7 +48,7 @@ const Digi: React.FC = () => {
   const navigate = useNavigate();
   const textBoxRef = useRef<HTMLDivElement | null>(null);
 
-  const handleChooseFontStyle = (style: "handwritten" | "text") => {
+  const handleChooseFontStyle = (style: "handwritten" | "text" | "mynerve" | "arimo" | "raleway") => {
     setSelectedStyle(style);
 
     // Auto-create a notebook immediately and jump into editor.
@@ -388,7 +399,7 @@ const Digi: React.FC = () => {
       )}
 
       {/* Main Content */}
-      <div className="max-w-6xl mx-auto px-6 md:px-12 pt-24 pb-16">
+      <div className="max-w-6xl mx-auto px-6 md:px-12 pt-20 pb-16">
         <div className="flex flex-col lg:flex-row gap-8 md:gap-12 items-center justify-center">
           
           {/* Camera Section */}
@@ -406,13 +417,10 @@ const Digi: React.FC = () => {
                     ref={textBoxRef}
                     className={`${getPaperStyleClass(selectedPaperStyle)} h-full w-full overflow-y-auto p-4 rounded-lg border-2 border-zinc-200`}
                     style={{
-                      fontFamily:
-                        selectedStyle === "handwritten"
-                          ? "caveat, cursive"
-                          : "varela round, sans-serif",
+                      fontFamily: getFontFamily(selectedStyle || "text"),
                     }}
                   >
-                    <p className="text-sm whitespace-pre-wrap">{extractedText}</p>
+                    <p className="notebook-text whitespace-pre-wrap">{extractedText}</p>
                   </div>
                 ) : isCameraOpen && !isHide ? (
                   <img
@@ -522,10 +530,10 @@ const Digi: React.FC = () => {
 
           {/* File Upload Section */}
           <motion.div
-            className="w-full lg:w-auto"
+            className="w-full lg:w-auto flex flex-col items-center gap-4"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4, duration: 0.6 }}
+            transition={{ delay: 0.3, duration: 0.6 }}
           >
             <div
               className={`relative bg-white border-[3px] border-zinc-900 rounded-[15px_255px_15px_225px/225px_15px_255px_15px] p-8 shadow-[8px_8px_0px_rgba(0,0,0,0.15)] cursor-pointer transition-all
@@ -575,6 +583,30 @@ const Digi: React.FC = () => {
                 className="hidden"
               />
             </div>
+            {/* My Notebooks Button - Below Dropbox */}
+            <motion.button
+              onClick={() => navigate("/SavedNotebooks")}
+              className="sketchy-button-white text-base md:text-lg px-6 py-3 shadow-[4px_4px_0px_black] hover:shadow-[6px_6px_0px_black] active:shadow-none active:translate-x-1 active:translate-y-1 transition-all flex items-center gap-2 w-full md:w-96"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5, duration: 0.4 }}
+              whileHover={{ scale: 1.02 }}
+            >
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                />
+              </svg>
+              My Notebooks
+            </motion.button>
           </motion.div>
 
         </div>
@@ -681,6 +713,63 @@ const Digi: React.FC = () => {
                   <p className="text-sm font-bold">{style.name}</p>
                 </motion.button>
               ))}
+            </div>
+          </motion.div>
+        )}
+
+        {/* Instructions Section - Shown when no text is extracted */}
+        {!extractedText && (
+          <motion.div
+            className="mt-12 w-full max-w-4xl mx-auto"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6, duration: 0.6 }}
+          >
+            <div className="relative bg-white border-[3px] border-zinc-900 rounded-[255px_15px_225px_15px/15px_225px_15px_255px] p-6 md:p-8 shadow-[8px_8px_0px_rgba(0,0,0,0.12)]">
+              <h3 className="text-2xl md:text-3xl font-bold text-zinc-800 mb-6 text-center">
+                How to Use Scrible
+              </h3>
+              <div className="space-y-4 text-zinc-700">
+                <div className="flex items-start gap-4">
+                  <div className="flex-shrink-0 w-8 h-8 bg-purple-200 border-2 border-zinc-900 rounded-full flex items-center justify-center font-bold text-lg">
+                    1
+                  </div>
+                  <div>
+                    <p className="font-semibold text-lg mb-1">Upload or Capture</p>
+                    <p className="text-base">Drop an image or PDF file into the dropbox, or click "Open Camera" to capture handwriting directly from your device.</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-4">
+                  <div className="flex-shrink-0 w-8 h-8 bg-purple-200 border-2 border-zinc-900 rounded-full flex items-center justify-center font-bold text-lg">
+                    2
+                  </div>
+                  <div>
+                    <p className="font-semibold text-lg mb-1">AI Extraction</p>
+                    <p className="text-base">Scrible will automatically extract the handwritten text from your image using AI technology.</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-4">
+                  <div className="flex-shrink-0 w-8 h-8 bg-purple-200 border-2 border-zinc-900 rounded-full flex items-center justify-center font-bold text-lg">
+                    3
+                  </div>
+                  <div>
+                    <p className="font-semibold text-lg mb-1">Choose Your Style</p>
+                    <p className="text-base">Select your preferred font style (handwritten, text, or others) and paper style (classic, blue, green, etc.).</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-4">
+                  <div className="flex-shrink-0 w-8 h-8 bg-purple-200 border-2 border-zinc-900 rounded-full flex items-center justify-center font-bold text-lg">
+                    4
+                  </div>
+                  <div>
+                    <p className="font-semibold text-lg mb-1">Save & Edit</p>
+                    <p className="text-base">Your notebook will be automatically saved. Access it anytime from "My Notebooks" to edit, append, or download.</p>
+                  </div>
+                </div>
+              </div>
+              {/* Decorative corner elements */}
+              <div className="absolute -top-3 -right-3 w-8 h-8 border-t-2 border-r-2 border-zinc-300 rounded-tr-2xl rotate-12 opacity-40" />
+              <div className="absolute -bottom-3 -left-3 w-8 h-8 border-b-2 border-l-2 border-zinc-300 rounded-bl-2xl -rotate-12 opacity-40" />
             </div>
           </motion.div>
         )}
