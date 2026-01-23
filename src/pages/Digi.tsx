@@ -252,15 +252,26 @@ const Digi: React.FC = () => {
     setIsDragOver(false);
   };
 
+  const isValidFile = (file: File): boolean => {
+    const validImageTypes = ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp", "image/bmp"];
+    const validExtensions = [".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp", ".pdf"];
+    const fileName = file.name.toLowerCase();
+    
+    // Check MIME type
+    if (file.type.startsWith("image/") || file.type === "application/pdf") {
+      return true;
+    }
+    
+    // Fallback: check file extension
+    return validExtensions.some(ext => fileName.endsWith(ext));
+  };
+
   const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setIsDragOver(false);
 
     const file = e.dataTransfer.files[0];
-    if (
-      file &&
-      (file.type.startsWith("image/") || file.type === "application/pdf")
-    ) {
+    if (file && isValidFile(file)) {
       let fileToUpload = file;
 
       if (file.type === "application/pdf") {
@@ -292,10 +303,7 @@ const Digi: React.FC = () => {
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (
-      file &&
-      (file.type.startsWith("image/") || file.type === "application/pdf")
-    ) {
+    if (file && isValidFile(file)) {
       let fileToUpload = file;
 
       if (file.type === "application/pdf") {
@@ -562,7 +570,7 @@ const Digi: React.FC = () => {
               <input
                 type="file"
                 id="fileInput"
-                accept="image/*,application/pdf"
+                accept="image/jpeg,image/jpg,image/png,image/gif,image/webp,image/bmp,application/pdf,.jpg,.jpeg,.png,.gif,.webp,.bmp,.pdf"
                 onChange={handleFileSelect}
                 className="hidden"
               />

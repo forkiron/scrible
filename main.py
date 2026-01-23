@@ -1,8 +1,8 @@
 from flask import Flask, render_template, Response, request, jsonify, send_file
+from flask_cors import CORS
 import cv2
 import threading
 import numpy as np
-from flask_cors import CORS
 import google.generativeai as genai
 import os
 from dotenv import load_dotenv
@@ -11,7 +11,14 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = Flask(__name__)
-CORS(app)
+# Configure CORS to allow all origins and methods
+CORS(app, resources={
+    r"/*": {
+        "origins": "*",
+        "methods": ["GET", "POST", "OPTIONS"],
+        "allow_headers": ["Content-Type", "Authorization"]
+    }
+}, supports_credentials=True)
 
 class VideoCamera(object):
     def __init__(self):
@@ -61,7 +68,14 @@ camera = VideoCamera()
 
 @app.route('/')
 def index():
-    return render_template('index.js')
+    return jsonify({"status": "ok", "message": "Scrible API is running"})
+
+@app.after_request
+def after_request(response):
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+    return response
 
 def gen(camera):
     while True:
@@ -73,7 +87,11 @@ def gen(camera):
 
 @app.route('/video_feed')
 def video_feed():
-    return Response(gen(camera), mimetype='multipart/x-mixed-replace; boundary=frame')
+    try:
+        return Response(gen(camera), mimetype='multipart/x-mixed-replace; boundary=frame')
+    except Exception as e:
+        print(f"[ERROR] Video feed error: {e}")
+        return jsonify({"status": "error", "message": "Camera not available"}), 500
 
 @app.route('/capture', methods=['POST'])
 def capture():
@@ -123,11 +141,19 @@ def process_image(image_path):
 
 @app.route('/captured_photo.jpg')
 def get_captured_photo():
-    return send_file('captured_photo.jpg', mimetype='image/jpeg')
+    try:
+        return send_file('captured_photo.jpg', mimetype='image/jpeg')
+    except Exception as e:
+        print(f"[ERROR] Failed to send captured_photo.jpg: {e}")
+        return jsonify({"status": "error", "message": "Image not found"}), 404
 
 @app.route('/step_thresh.jpg')
 def get_step_thresh():
-    return send_file('step_thresh.jpg', mimetype='image/jpeg')
+    try:
+        return send_file('step_thresh.jpg', mimetype='image/jpeg')
+    except Exception as e:
+        print(f"[ERROR] Failed to send step_thresh.jpg: {e}")
+        return jsonify({"status": "error", "message": "Image not found"}), 404
 
 @app.route('/analyze', methods=['GET'])
 def analyze():

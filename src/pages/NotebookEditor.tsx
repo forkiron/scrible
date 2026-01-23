@@ -244,15 +244,29 @@ const NotebookEditor = () => {
     setIsDragOver(true);
   };
   const handleDragLeave = () => setIsDragOver(false);
+  const isValidFile = (file: File): boolean => {
+    const validImageTypes = ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp", "image/bmp"];
+    const validExtensions = [".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp", ".pdf"];
+    const fileName = file.name.toLowerCase();
+    
+    // Check MIME type
+    if (file.type.startsWith("image/") || file.type === "application/pdf") {
+      return true;
+    }
+    
+    // Fallback: check file extension
+    return validExtensions.some(ext => fileName.endsWith(ext));
+  };
+
   const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setIsDragOver(false);
     const file = e.dataTransfer.files?.[0];
     if (!file) return;
-    if (file.type.startsWith("image/") || file.type === "application/pdf") {
+    if (isValidFile(file)) {
       await appendFromFile(file);
     } else {
-      setAppendError("Please drop an image or PDF.");
+      setAppendError("Please drop an image (JPG, PNG, etc.) or PDF.");
     }
   };
 
@@ -448,11 +462,15 @@ const NotebookEditor = () => {
               <input
                 id="appendFileInput"
                 type="file"
-                accept="image/*,application/pdf"
+                accept="image/jpeg,image/jpg,image/png,image/gif,image/webp,image/bmp,application/pdf,.jpg,.jpeg,.png,.gif,.webp,.bmp,.pdf"
                 className="hidden"
                 onChange={(e) => {
                   const file = e.target.files?.[0];
-                  if (file) appendFromFile(file);
+                  if (file && isValidFile(file)) {
+                    appendFromFile(file);
+                  } else if (file) {
+                    setAppendError("Please select an image (JPG, PNG, etc.) or PDF.");
+                  }
                   e.currentTarget.value = "";
                 }}
               />
