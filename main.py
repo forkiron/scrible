@@ -11,14 +11,12 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = Flask(__name__)
-# Configure CORS to allow all origins and methods
-CORS(app, resources={
-    r"/*": {
-        "origins": "*",
-        "methods": ["GET", "POST", "OPTIONS"],
-        "allow_headers": ["Content-Type", "Authorization"]
-    }
-}, supports_credentials=True)
+# Configure CORS to allow all origins and methods - permissive for development
+CORS(app, 
+     origins="*",
+     methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+     allow_headers=["Content-Type", "Authorization", "X-Requested-With"],
+     supports_credentials=False)
 
 class VideoCamera(object):
     def __init__(self):
@@ -70,13 +68,6 @@ camera = VideoCamera()
 def index():
     return jsonify({"status": "ok", "message": "Scrible API is running"})
 
-@app.after_request
-def after_request(response):
-    response.headers.add('Access-Control-Allow-Origin', '*')
-    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
-    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
-    return response
-
 def gen(camera):
     while True:
         frame = camera.get_frame()
@@ -93,8 +84,11 @@ def video_feed():
         print(f"[ERROR] Video feed error: {e}")
         return jsonify({"status": "error", "message": "Camera not available"}), 500
 
-@app.route('/capture', methods=['POST'])
+@app.route('/capture', methods=['POST', 'OPTIONS'])
 def capture():
+    if request.method == 'OPTIONS':
+        return jsonify({"status": "ok"})
+        
     print("[INFO] Capture endpoint called")
     try:
         success = camera.capture_photo("captured_photo.jpg")
@@ -109,8 +103,12 @@ def capture():
         print(f"[ERROR] Exception in capture endpoint: {e}")
         return jsonify({"status": "error", "message": f"Internal server error: {str(e)}"}), 500
 
-@app.route('/upload', methods=['POST'])
+@app.route('/upload', methods=['POST', 'OPTIONS'])
 def upload():
+    if request.method == 'OPTIONS':
+        # Handle preflight request
+        return jsonify({"status": "ok"})
+    
     if 'file' not in request.files:
         return jsonify({"status": "error", "message": "No file uploaded"}), 400
 
@@ -121,7 +119,6 @@ def upload():
     try:
         file.save("captured_photo.jpg")
         process_image("captured_photo.jpg")
-
         return jsonify({"status": "success", "message": "Image uploaded and preprocessed"})
     except Exception as e:
         print(f"Error processing upload: {e}")
@@ -155,8 +152,10 @@ def get_step_thresh():
         print(f"[ERROR] Failed to send step_thresh.jpg: {e}")
         return jsonify({"status": "error", "message": "Image not found"}), 404
 
-@app.route('/analyze', methods=['GET'])
+@app.route('/analyze', methods=['GET', 'OPTIONS'])
 def analyze():
+    if request.method == 'OPTIONS':
+        return jsonify({"status": "ok"})
     GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
     if not GEMINI_API_KEY:
         print("[ERROR] GEMINI_API_KEY environment variable not set")
@@ -208,7 +207,7 @@ def analyze():
         return jsonify({"status": "error", "message": f"Internal server error: {str(e)}"}), 500
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, threaded=True, use_reloader=False)
+    app.run(host='0.0.0.0', port=8000, threaded=True, use_reloader=False)
 
 
 

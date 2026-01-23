@@ -203,7 +203,7 @@ const NotebookEditor = () => {
       const formData = new FormData();
       formData.append("file", fileToUpload);
 
-      const uploadRes = await fetch("http://localhost:5000/upload", {
+      const uploadRes = await fetch("http://localhost:8000/upload", {
         method: "POST",
         body: formData,
       });
@@ -213,7 +213,7 @@ const NotebookEditor = () => {
         return;
       }
 
-      const analyzeRes = await fetch("http://localhost:5000/analyze");
+      const analyzeRes = await fetch("http://localhost:8000/analyze");
       const analyzeJson = await analyzeRes.json();
       if (analyzeJson.status !== "success") {
         setAppendError(analyzeJson.message || "Analyze failed");

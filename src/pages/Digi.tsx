@@ -152,7 +152,7 @@ const Digi: React.FC = () => {
     const formData = new FormData();
     formData.append("file", file);
 
-    fetch("http://localhost:5000/upload", {
+    fetch("http://localhost:8000/upload", {
       method: "POST",
       body: formData,
     })
@@ -164,11 +164,11 @@ const Digi: React.FC = () => {
         console.log("Backend upload response data:", data);
         if (data.status === "success") {
           setCapturedPhotoUrl(
-            `http://localhost:5000/step_thresh.jpg?${Date.now()}`
+            `http://localhost:8000/step_thresh.jpg?${Date.now()}`
           );
           setIsHide(true);
 
-          fetch("http://localhost:5000/analyze")
+          fetch("http://localhost:8000/analyze")
             .then((res) => res.json())
             .then((analyzeData) => {
               console.log("Analyze response data:", analyzeData);
@@ -200,7 +200,7 @@ const Digi: React.FC = () => {
   const ChangeCamera = () => {
     setIsClicked(true);
 
-    fetch("http://localhost:5000/capture", { method: "POST" })
+    fetch("http://localhost:8000/capture", { method: "POST" })
       .then((res) => res.json())
       .then((data) => {
         console.log("Capture response:", data);
@@ -208,10 +208,10 @@ const Digi: React.FC = () => {
         if (data.status === "success") {
           setIsHide(true);
           setCapturedPhotoUrl(
-            `http://localhost:5000/captured_photo.jpg?${Date.now()}`
+            `http://localhost:8000/captured_photo.jpg?${Date.now()}`
           );
 
-          fetch("http://localhost:5000/analyze")
+          fetch("http://localhost:8000/analyze")
             .then((res) => res.json())
             .then((analyzeData) => {
               console.log("Analyze response data:", analyzeData);
@@ -417,7 +417,7 @@ const Digi: React.FC = () => {
                 ) : isCameraOpen && !isHide ? (
                   <img
                     className="h-full w-full object-cover transition-opacity duration-500"
-                    src="http://localhost:5000/video_feed"
+                    src="http://localhost:8000/video_feed"
                     alt="Video feed"
                   />
                 ) : !isHide ? (
