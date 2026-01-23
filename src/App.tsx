@@ -4,6 +4,7 @@ import Home from "./pages/Home";
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import SavedNotebooks from "./pages/SavedNotebooks";
+import NotebookEditor from "./pages/NotebookEditor";
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
           <Route path="/Digi" element={<Digi />} />
           <Route path="/login" element={<Login />} />
           <Route path="/SavedNotebooks" element={<SavedNotebooks />} />
+          <Route path="/notebook/:id" element={<NotebookEditor />} />
         </Routes>
       </div>
     </Router>

@@ -77,8 +77,11 @@ export const appendToNotebookText = (
   const cleaned = (textToAppend || '').trim();
   if (!cleaned) return notebook;
 
+  const stampedHeader = `[Appended ${new Date().toLocaleString()}]`;
+  const separator = `\n\n---\n${stampedHeader}\n\n`;
+
   const nextText = notebook.text?.trim()
-    ? `${notebook.text}\n\n${cleaned}`
+    ? `${notebook.text}${separator}${cleaned}`
     : cleaned;
 
   return updateNotebook(notebookId, userId, { text: nextText });
