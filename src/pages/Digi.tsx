@@ -5,9 +5,10 @@ import star from "../assets/star.gif";
 import back from "../assets/back.png";
 import header from "../assets/header.png";
 import smile from "../assets/smile.gif";
-import { useLocation } from "react-router-dom";
 import html2canvas from "html2canvas";
 import { useRef } from "react";
+import { useAuth } from "../context/AuthContext";
+import { saveNotebook } from "../utils/notebookStorage";
 
 const Digi: React.FC = () => {
   const [isClicked, setIsClicked] = useState(false);
@@ -17,10 +18,14 @@ const Digi: React.FC = () => {
   const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null);
   const [extractedText, setExtractedText] = useState<string | null>(null);
   const [isCameraOpen, setIsCameraOpen] = useState(false);
-  const location = useLocation();
-  const selectedStyle = location.state?.style || "text";
+  const [selectedStyle, setSelectedStyle] = useState<string | null>(null);
+  const [selectedPaperStyle, setSelectedPaperStyle] = useState<string>("classic");
+  const [showSaveDialog, setShowSaveDialog] = useState(false);
+  const [notebookTitle, setNotebookTitle] = useState("");
+  const { user } = useAuth();
   const navigate = useNavigate();
   const textBoxRef = useRef<HTMLDivElement | null>(null);
+  
   const downloadAsImage = () => {
     if (!textBoxRef.current) return;
 
@@ -66,14 +71,12 @@ const Digi: React.FC = () => {
             return;
           }
 
-          // Dynamically import pdf.js
           const pdfjsLib = await import("pdfjs-dist");
-          // Use jsdelivr CDN which is more reliable
           pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
 
           const pdf = await pdfjsLib.getDocument({ data: e.target.result })
             .promise;
-          const page = await pdf.getPage(1); // Get first page
+          const page = await pdf.getPage(1);
 
           const viewport = page.getViewport({ scale: 2.0 });
           const canvas = document.createElement("canvas");
@@ -148,6 +151,7 @@ const Digi: React.FC = () => {
                     analyzeData.extracted_text ||
                     "No text extracted."
                 );
+                setSelectedStyle(null); // Reset style selection when new text is extracted
               } else {
                 setExtractedText("Analysis failed: " + analyzeData.message);
               }
@@ -190,6 +194,8 @@ const Digi: React.FC = () => {
                     analyzeData.extracted_text ||
                     "No text extracted."
                 );
+                setSelectedStyle(null); // Reset style selection when new text is extracted
+                setSelectedPaperStyle("classic"); // Reset paper style
               } else {
                 setExtractedText("Analysis failed: " + analyzeData.message);
               }
@@ -230,7 +236,6 @@ const Digi: React.FC = () => {
     ) {
       let fileToUpload = file;
 
-      // Convert PDF to image if needed
       if (file.type === "application/pdf") {
         try {
           setExtractedText("Converting PDF to image...");
@@ -250,11 +255,6 @@ const Digi: React.FC = () => {
         setIsHide(true);
       };
       reader.readAsDataURL(fileToUpload);
-
-      console.log(
-        "Dropped file:",
-        file.type === "application/pdf" ? "PDF" : "image"
-      );
 
       uploadImage(fileToUpload);
     } else {
@@ -271,7 +271,6 @@ const Digi: React.FC = () => {
     ) {
       let fileToUpload = file;
 
-      // Convert PDF to image if needed
       if (file.type === "application/pdf") {
         try {
           setExtractedText("Converting PDF to image...");
@@ -292,11 +291,6 @@ const Digi: React.FC = () => {
       };
       reader.readAsDataURL(fileToUpload);
 
-      console.log(
-        "Selected file:",
-        file.type === "application/pdf" ? "PDF" : "image"
-      );
-
       uploadImage(fileToUpload);
     } else {
       console.warn("Selected file is not an image or PDF");
@@ -305,162 +299,443 @@ const Digi: React.FC = () => {
   };
 
   return (
-    <div className="bg-lined-paper h-screen w-screen flex flex-col gap-5 items-center justify-center overflow-hidden">
-      <img
-        src={header}
-        className="absolute w-48 top-5 fade-in-up right-10"
-        alt=""
-      />
-      <button onClick={() => navigate("/Option")}>
-        <motion.img
-          className="absolute top-5 left-20 w-16 opacity-85"
+    <div className="min-h-screen w-full bg-lined-paper relative overflow-x-hidden font-mynerve">
+      {/* Back Button */}
+      <motion.button
+        onClick={() => navigate("/")}
+        className="absolute top-6 left-6 md:left-12 z-20"
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.5 }}
+        whileHover={{ scale: 1.1, rotate: -5 }}
+      >
+        <img
           src={back}
           alt="Back"
-          whileHover={{ scale: 1.2, rotate: -15 }}
-          transition={{ type: "spring", stiffness: 300 }}
+          className="w-12 md:w-16 opacity-90 hover:opacity-100 transition-opacity"
         />
-      </button>
+      </motion.button>
+
+      {/* Header Logo */}
+      <motion.div
+        className="absolute top-6 right-6 md:right-12 z-20"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+      >
+        <img
+          src={header}
+          alt="Scrible"
+          className="w-40 md:w-48 h-auto"
+        />
+      </motion.div>
+
+      {/* Decorative Elements */}
       {!isHide && (
         <>
-          <img
+          <motion.img
             src={star}
-            className="absolute w-24 top-12 right-73 z-10 fade-in-up"
+            className="absolute top-20 right-32 w-16 md:w-20 opacity-60 z-10"
             alt="Star"
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 0.6, scale: 1 }}
+            transition={{ delay: 0.5, duration: 0.6 }}
           />
-          <div className="tape absolute w-8 h-24 right-83 bottom-70 z-10"></div>
-          <img
+          <motion.img
             src={smile}
-            className="absolute w-16 top-94 rotate-23 left-102 z-10 fade-in-up"
+            className="absolute bottom-32 left-16 w-14 md:w-18 opacity-60 z-10"
             alt="Smile"
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 0.6, scale: 1 }}
+            transition={{ delay: 0.7, duration: 0.6 }}
           />
         </>
       )}
 
-      <div className="flex justify-center items-center gap-4 bg-black rounded-lg px-5 py-4 shadow-lg shadow-black fade-in-up transition-all duration-700">
-        <div className="flex items-center">
-          {extractedText ? (
-            <div
-              ref={textBoxRef}
-              className="lined-paper-box h-64 w-96 overflow-y-auto p-4 bg-white rounded-lg shadow"
-              style={{
-                maxHeight: "16rem",
-                fontFamily:
-                  selectedStyle === "handwritten"
-                    ? "caveat, cursive"
-                    : "varela round, sans-serif",
-              }}
-            >
-              {extractedText}
+      {/* Main Content */}
+      <div className="max-w-6xl mx-auto px-6 md:px-12 pt-24 pb-16">
+        <div className="flex flex-col lg:flex-row gap-8 md:gap-12 items-center justify-center">
+          
+          {/* Camera Section */}
+          <motion.div
+            className="w-full lg:w-auto flex flex-col items-center gap-4"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, duration: 0.6 }}
+          >
+            {/* Camera Preview Box */}
+            <div className="relative bg-white border-[3px] border-zinc-900 rounded-[255px_15px_225px_15px/15px_225px_15px_255px] p-6 shadow-[8px_8px_0px_rgba(0,0,0,0.15)]">
+              <div className="w-full md:w-96 h-64 bg-zinc-100 rounded-lg overflow-hidden flex items-center justify-center">
+                {extractedText && selectedStyle ? (
+                  <div
+                    ref={textBoxRef}
+                    className={`${getPaperStyleClass(selectedPaperStyle)} h-full w-full overflow-y-auto p-4 rounded-lg border-2 border-zinc-200`}
+                    style={{
+                      fontFamily:
+                        selectedStyle === "handwritten"
+                          ? "caveat, cursive"
+                          : "varela round, sans-serif",
+                    }}
+                  >
+                    <p className="text-sm whitespace-pre-wrap">{extractedText}</p>
+                  </div>
+                ) : isCameraOpen && !isHide ? (
+                  <img
+                    className="h-full w-full object-cover transition-opacity duration-500"
+                    src="http://localhost:5000/video_feed"
+                    alt="Video feed"
+                  />
+                ) : !isHide ? (
+                  <div className="text-center p-8">
+                    <p className="text-zinc-500 text-lg font-medium">
+                      Click "Open Camera" to start
+                    </p>
+                  </div>
+                ) : (
+                  <img
+                    className="h-full w-full object-contain transition-opacity duration-500"
+                    src={capturedPhotoUrl}
+                    alt="Captured or Uploaded"
+                  />
+                )}
+              </div>
+              
+              {/* Camera Button */}
+              {!extractedText && (
+                <div className="flex justify-center mt-4">
+                  {isCameraOpen && !isHide ? (
+                    <motion.button
+                      onClick={ChangeCamera}
+                      className="relative"
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <div className="w-16 h-16 bg-white border-[3px] border-zinc-900 rounded-full shadow-[4px_4px_0px_rgba(0,0,0,0.2)] transition-all"></div>
+                      <div
+                        className={`w-12 h-12 rounded-full absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 border-2 border-zinc-900
+                        ${isClicked ? "scale-90 bg-zinc-200" : "bg-white"}
+                        transition-all duration-200 ease-in-out`}
+                      ></div>
+                    </motion.button>
+                  ) : null}
+                </div>
+              )}
             </div>
-          ) : isCameraOpen && !isHide ? (
-            <img
-              className="h-64 transition-opacity duration-500"
-              src="http://localhost:5000/video_feed"
-              alt="Video feed"
-            />
-          ) : !isHide ? (
-            <div className="h-64 w-96 text-2xl flex items-center justify-cente px-5 bg-gray-100 rounded-lg">
-              <p className="text-gray-500">Click "Open Camera" to start</p>
-            </div>
-          ) : (
-            <img
-              className="h-64 transition-opacity duration-500"
-              src={capturedPhotoUrl}
-              alt="Captured or Uploaded"
-            />
-          )}
-        </div>
 
-        <div className="flex items-center">
-          {extractedText ? (
-            <button
-              className="w-20 h-20 bg-green-500 hover:bg-green-600 text-white rounded-full flex items-center justify-center transition-transform duration-300 hover:scale-95"
-              onClick={downloadAsImage}
-            >
-              <svg
-                className="w-8 h-8"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                viewBox="0 0 24 24"
+            {/* Open Camera Button */}
+            {!isCameraOpen && !isHide && (
+              <motion.button
+                onClick={() => setIsCameraOpen(true)}
+                className="sketchy-button-purple text-lg md:text-xl px-8 py-3 shadow-[4px_4px_0px_black] hover:shadow-[6px_6px_0px_black] active:shadow-none active:translate-x-1 active:translate-y-1 transition-all"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3"
-                />
-              </svg>
-            </button>
-          ) : (
-            <button className="relative" onClick={ChangeCamera}>
-              <div className="w-20 h-20 bg-white rounded-full transition-transform duration-300 hover:scale-95"></div>
-              <div
-                className={`w-16 h-16 rounded-full absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 border-2
-            ${isClicked ? "scale-90 bg-gray-100" : "bg-white border-gray-200"}
-            transition-all duration-200 ease-in-out`}
-              ></div>
-            </button>
-          )}
-        </div>
-      </div>
+                Open Camera
+              </motion.button>
+            )}
 
-      {!isCameraOpen && !isHide && (
-        <button
-          onClick={() => setIsCameraOpen(true)}
-          className="px-6 py-3 bg-blue-500 hover:bg-blue-60 text-xl cursor-pointer text-white font-semibold rounded-lg shadow-lg transition-all duration-300 hover:scale-105 fade-in-up"
-        >
-          Open Camera
-        </button>
-      )}
+            {/* Action Buttons (when text is extracted and style is selected) */}
+            {extractedText && selectedStyle && (
+              <div className="flex flex-wrap gap-4 justify-center">
+                <motion.button
+                  className="sketchy-button-white text-lg md:text-xl px-8 py-3 shadow-[4px_4px_0px_black] hover:shadow-[6px_6px_0px_black] active:shadow-none active:translate-x-1 active:translate-y-1 transition-all flex items-center gap-2"
+                  onClick={downloadAsImage}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 }}
+                >
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3"
+                    />
+                  </svg>
+                  Download
+                </motion.button>
+                {user && (
+                  <motion.button
+                    className="sketchy-button-purple text-lg md:text-xl px-8 py-3 shadow-[4px_4px_0px_black] hover:shadow-[6px_6px_0px_black] active:shadow-none active:translate-x-1 active:translate-y-1 transition-all flex items-center gap-2"
+                    onClick={() => setShowSaveDialog(true)}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3 }}
+                  >
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                    Save
+                  </motion.button>
+                )}
+                {user && (
+                  <motion.button
+                    className="sketchy-button-white text-lg md:text-xl px-8 py-3 shadow-[4px_4px_0px_black] hover:shadow-[6px_6px_0px_black] active:shadow-none active:translate-x-1 active:translate-y-1 transition-all flex items-center gap-2"
+                    onClick={() => navigate("/SavedNotebooks")}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.4 }}
+                  >
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                      />
+                    </svg>
+                    My Notebooks
+                  </motion.button>
+                )}
+              </div>
+            )}
+          </motion.div>
 
-      <div
-        className={`w-96 h-60 flex flex-col items-center justify-center border-4 rounded-2xl shadow-lg fade-in-up transition-all duration-700
-        ${
-          isDragOver
-            ? "border-blue-400 bg-blue-50 scale-105"
-            : "border-dashed border-gray-300 bg-gray-200 hover:shadow-xl hover:bg-gray-100 hover:scale-105 cursor-pointer"
-        }
-      `}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
-        onClick={() => document.getElementById("fileInput")?.click()}
-      >
-        {uploadedImageUrl ? (
-          <img
-            src={uploadedImageUrl}
-            alt="Uploaded preview"
-            className="max-h-48 object-contain rounded-lg transition-all duration-500"
-          />
-        ) : (
-          <div className="flex flex-col items-center justify-center transition-opacity duration-500">
-            <svg
-              className="w-12 h-12 mb-2 text-gray-400"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              viewBox="0 0 24 24"
+          {/* File Upload Section */}
+          <motion.div
+            className="w-full lg:w-auto"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4, duration: 0.6 }}
+          >
+            <div
+              className={`relative bg-white border-[3px] border-zinc-900 rounded-[15px_255px_15px_225px/225px_15px_255px_15px] p-8 shadow-[8px_8px_0px_rgba(0,0,0,0.15)] cursor-pointer transition-all
+              ${
+                isDragOver
+                  ? "border-blue-400 bg-blue-50 scale-105 shadow-[12px_12px_0px_rgba(0,0,0,0.2)]"
+                  : "hover:shadow-[12px_12px_0px_rgba(0,0,0,0.2)] hover:scale-[1.02]"
+              }
+              w-full md:w-96 h-64 flex flex-col items-center justify-center`}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              onClick={() => document.getElementById("fileInput")?.click()}
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M3 16.5V18a2.25 2.25 0 002.25 2.25h13.5A2.25 2.25 0 0021 18v-1.5M7.5 12l4.5-4.5m0 0L16.5 12m-4.5-4.5V18"
+              {uploadedImageUrl ? (
+                <img
+                  src={uploadedImageUrl}
+                  alt="Uploaded preview"
+                  className="max-h-full max-w-full object-contain rounded-lg transition-all duration-500"
+                />
+              ) : (
+                <div className="flex flex-col items-center justify-center space-y-4">
+                  <svg
+                    className="w-16 h-16 text-zinc-400"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M3 16.5V18a2.25 2.25 0 002.25 2.25h13.5A2.25 2.25 0 0021 18v-1.5M7.5 12l4.5-4.5m0 0L16.5 12m-4.5-4.5V18"
+                    />
+                  </svg>
+                  <p className="text-zinc-700 font-bold text-xl text-center">
+                    Drop an image or PDF
+                  </p>
+                  <p className="text-zinc-500 text-sm">or click to browse</p>
+                </div>
+              )}
+              <input
+                type="file"
+                id="fileInput"
+                accept="image/*,application/pdf"
+                onChange={handleFileSelect}
+                className="hidden"
               />
-            </svg>
-            <p className="text-gray-600 font-semibold text-2xl text-center">
-              Drop an image or PDF
-            </p>
-            <p className="text-gray-400 text-sm mt-1">or click to browse</p>
+            </div>
+          </motion.div>
+
+        </div>
+
+        {/* Font Style Selection (shown after text is extracted) */}
+        {extractedText && !selectedStyle && (
+          <motion.div
+            className="mt-12 flex flex-col items-center gap-6"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.6 }}
+          >
+            <h3 className="text-2xl md:text-3xl font-bold text-zinc-800">
+              Choose Your Font Style
+            </h3>
+            <div className="flex flex-col md:flex-row gap-6">
+              {/* Handwritten Style Option */}
+              <motion.button
+                onClick={() => setSelectedStyle("handwritten")}
+                className="relative"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <div className="relative">
+                  <div className="absolute top-2 right-2 w-full h-full bg-yellow-800/40 rounded-[255px_15px_225px_15px/15px_225px_15px_255px]"></div>
+                  <div className="relative bg-yellow-400 border-[3px] border-zinc-900 rounded-[255px_15px_225px_15px/15px_225px_15px_255px] p-6 md:p-8 shadow-[8px_8px_0px_rgba(0,0,0,0.15)] cursor-pointer transition-all hover:shadow-[12px_12px_0px_rgba(0,0,0,0.2)]">
+                    <div className="flex flex-col items-center justify-center text-center space-y-3">
+                      <h4 className="text-xl md:text-2xl font-bold underline decoration-zinc-900 decoration-2" style={{ fontFamily: "Caveat, cursive" }}>
+                        Handwritten style
+                      </h4>
+                      <p className="text-base md:text-lg font-medium">
+                        Original. With a buttery finish.
+                      </p>
+                      <div className="text-4xl md:text-5xl mt-2">
+                        🧈✍️
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </motion.button>
+
+              {/* Text Font Option */}
+              <motion.button
+                onClick={() => setSelectedStyle("text")}
+                className="relative"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <div className="relative">
+                  <div className="absolute top-2 left-2 w-full h-full bg-sky-800/40 rounded-[15px_255px_15px_225px/225px_15px_255px_15px]"></div>
+                  <div className="relative bg-sky-300 border-[3px] border-zinc-900 rounded-[15px_255px_15px_225px/225px_15px_255px_15px] p-6 md:p-8 shadow-[8px_8px_0px_rgba(0,0,0,0.15)] cursor-pointer transition-all hover:shadow-[12px_12px_0px_rgba(0,0,0,0.2)]">
+                    <div className="flex flex-col items-center justify-center text-center space-y-3">
+                      <h4 className="text-xl md:text-2xl font-bold underline decoration-zinc-900 decoration-2" style={{ fontFamily: "Varela Round, sans-serif" }}>
+                        Text font
+                      </h4>
+                      <p className="text-base md:text-lg font-medium" style={{ fontFamily: "Varela Round, sans-serif" }}>
+                        Sleek, modern, perfect for assignments.
+                      </p>
+                      <div className="text-4xl md:text-5xl mt-2">
+                        📖
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </motion.button>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Paper Style Selection (shown after font style is selected) */}
+        {extractedText && selectedStyle && (
+          <motion.div
+            className="mt-8 flex flex-col items-center gap-6"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, duration: 0.6 }}
+          >
+            <h3 className="text-xl md:text-2xl font-bold text-zinc-800">
+              Choose Your Paper Style
+            </h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl">
+              {[
+                { id: "classic", name: "Classic", emoji: "📓" },
+                { id: "blue", name: "Blue", emoji: "💙" },
+                { id: "green", name: "Green", emoji: "💚" },
+                { id: "purple", name: "Purple", emoji: "💜" },
+                { id: "grid", name: "Grid", emoji: "📊" },
+                { id: "parchment", name: "Parchment", emoji: "📜" },
+                { id: "minimal", name: "Minimal", emoji: "📄" },
+              ].map((style) => (
+                <motion.button
+                  key={style.id}
+                  onClick={() => setSelectedPaperStyle(style.id)}
+                  className={`relative border-[3px] border-zinc-900 rounded-lg p-4 shadow-[4px_4px_0px_rgba(0,0,0,0.1)] transition-all ${
+                    selectedPaperStyle === style.id
+                      ? "bg-purple-200 scale-105"
+                      : "bg-white hover:bg-zinc-50"
+                  }`}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <div className={`${getPaperStyleClass(style.id)} h-20 rounded mb-2 border border-zinc-300`}></div>
+                  <div className="text-2xl mb-1">{style.emoji}</div>
+                  <p className="text-sm font-bold">{style.name}</p>
+                </motion.button>
+              ))}
+            </div>
+          </motion.div>
+        )}
+
+        {/* Save Dialog */}
+        {showSaveDialog && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <motion.div
+              className="bg-white border-[3px] border-zinc-900 rounded-[255px_15px_225px_15px/15px_225px_15px_255px] p-8 max-w-md w-full shadow-[10px_10px_0px_rgba(0,0,0,0.2)]"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+            >
+              <h3 className="text-2xl font-bold mb-4">Save Notebook</h3>
+              <input
+                type="text"
+                value={notebookTitle}
+                onChange={(e) => setNotebookTitle(e.target.value)}
+                placeholder="Enter notebook title..."
+                className="w-full px-4 py-3 border-[2px] border-zinc-900 rounded-lg font-mynerve text-lg mb-4 focus:outline-none focus:ring-2 focus:ring-purple-500"
+              />
+              <div className="flex gap-4">
+                <button
+                  onClick={handleSaveNotebook}
+                  className="flex-1 sketchy-button-purple text-lg px-6 py-3"
+                >
+                  Save
+                </button>
+                <button
+                  onClick={() => {
+                    setShowSaveDialog(false);
+                    setNotebookTitle("");
+                  }}
+                  className="flex-1 sketchy-button-white text-lg px-6 py-3"
+                >
+                  Cancel
+                </button>
+              </div>
+            </motion.div>
           </div>
         )}
-        <input
-          type="file"
-          id="fileInput"
-          accept="image/*,application/pdf"
-          onChange={handleFileSelect}
-          className="hidden"
-        />
+
+        {/* Login Prompt */}
+        {extractedText && selectedStyle && !user && (
+          <motion.div
+            className="mt-8 text-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+          >
+            <p className="text-zinc-600 mb-4">
+              Want to save your notebooks?{" "}
+              <button
+                onClick={() => navigate("/login")}
+                className="text-purple-600 font-bold underline hover:text-purple-800"
+              >
+                Login or Sign Up
+              </button>
+            </p>
+          </motion.div>
+        )}
       </div>
+
+      {/* Notebook margin line */}
+      <div className="fixed top-0 left-20 bottom-0 w-[2px] bg-[#fca5a5] opacity-40 z-0" />
     </div>
   );
 };

@@ -1,8 +1,9 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Digi from "./pages/Digi";
 import Home from "./pages/Home";
-import Option from "./pages/Option";
 import Landing from "./pages/Landing";
+import Login from "./pages/Login";
+import SavedNotebooks from "./pages/SavedNotebooks";
 
 function App() {
   return (
@@ -11,8 +12,9 @@ function App() {
         <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/home" element={<Home />} />
-          <Route path="/Option" element={<Option />} />
           <Route path="/Digi" element={<Digi />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/SavedNotebooks" element={<SavedNotebooks />} />
         </Routes>
       </div>
     </Router>

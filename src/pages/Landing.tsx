@@ -81,7 +81,7 @@ const Landing = () => {
             transition={{ delay: 0.8, duration: 0.5 }}
           >
             <button 
-              onClick={() => navigate("/Option")}
+              onClick={() => navigate("/Digi")}
               className="sketchy-button-purple text-lg md:text-xl px-12 py-3 shadow-[4px_4px_0px_black] hover:shadow-[6px_6px_0px_black] active:shadow-none active:translate-x-1 active:translate-y-1 transition-all"
             >
               Get Started
@@ -106,7 +106,78 @@ const Landing = () => {
         </div>
       </div>
 
-      {/* Floating Information Sections */}
+      {/* Project Demo Section */}
+      <div className="max-w-7xl mx-auto px-8 md:px-16 py-12 relative z-10">
+        <motion.div
+          className="relative bg-white border-[3px] border-zinc-900 rounded-[255px_15px_225px_15px/15px_225px_15px_255px] p-6 md:p-10 shadow-[10px_10px_0px_rgba(0,0,0,0.12)]"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1, duration: 0.8, type: "spring" }}
+        >
+          <h2 className="text-3xl md:text-4xl font-bold mb-6 text-center text-zinc-800">
+            Project Demo
+          </h2>
+          
+          {/* Demo Container - placeholder for video/iframe/demo */}
+          <div className="relative w-full aspect-video bg-zinc-100 rounded-lg overflow-hidden border-2 border-zinc-300">
+            {/* Placeholder for demo content - can be replaced with video, iframe, or interactive demo */}
+            <div className="w-full h-full flex items-center justify-center">
+              <div className="text-center space-y-4">
+                <svg
+                  className="w-20 h-20 mx-auto text-zinc-400"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
+                  />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                <p className="text-zinc-500 text-lg font-medium">
+                  Demo video or interactive showcase goes here
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Hand-drawn decorative elements */}
+          <div className="absolute -top-3 -right-3 w-8 h-8 border-t-2 border-r-2 border-zinc-300 rounded-tr-2xl rotate-12 opacity-40" />
+          <div className="absolute -bottom-3 -left-3 w-8 h-8 border-b-2 border-l-2 border-zinc-300 rounded-bl-2xl -rotate-12 opacity-40" />
+        </motion.div>
+      </div>
+
+      {/* Divider */}
+      <div className="max-w-7xl mx-auto px-8 md:px-16 py-12 relative z-10">
+        <div className="relative">
+          <svg viewBox="0 0 800 40" className="w-full h-12 opacity-60">
+            <path 
+              d="M10,20 Q200,5 400,20 T790,20" 
+              fill="none" 
+              stroke="#6d4da1" 
+              strokeWidth="3" 
+              strokeLinecap="round"
+            />
+            <path 
+              d="M30,25 Q250,8 450,25 T770,25" 
+              fill="none" 
+              stroke="#2ea9df" 
+              strokeWidth="2" 
+              strokeLinecap="round"
+              opacity="0.6"
+            />
+          </svg>
+        </div>
+      </div>
+
+      {/* Information Sections */}
       <div className="max-w-7xl mx-auto px-8 md:px-16 pb-24 relative z-10">
         <div className="grid md:grid-cols-2 gap-8 md:gap-12">
           
