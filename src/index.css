@@ -371,8 +371,8 @@
 /* Using 120px total from container edge = 16px (container padding) + 104px (text padding) */
 .notebook-text {
   line-height: 32px;
-  padding-top: 20px; /* Adjust to align baseline with first line */
-  padding-left: 90px !important; /* 104px + 16px container padding = 120px from edge, clearly right of 82px margin */
+  padding-top: 25px; /* Adjust to align baseline with first line */
+  padding-left: 75px !important; /* 104px + 16px container padding = 120px from edge, clearly right of 82px margin */
   font-size: 16px; /* Adjustable but 16px works well with 32px line-height */
   margin-left: 0 !important; /* Ensure no margin interferes */
   box-sizing: border-box;

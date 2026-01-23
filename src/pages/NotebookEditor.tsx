@@ -107,7 +107,11 @@ const NotebookEditor = () => {
       paperStyle,
       fontStyle,
     });
-    if (updated) setNotebook(updated);
+    if (updated) {
+      setNotebook(updated);
+      // Navigate back to notebooks list after saving
+      navigate("/SavedNotebooks");
+    }
   };
 
   const downloadAsImage = () => {
