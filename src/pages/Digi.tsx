@@ -25,6 +25,22 @@ const Digi: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const textBoxRef = useRef<HTMLDivElement | null>(null);
+
+  const handleChooseFontStyle = (style: "handwritten" | "text") => {
+    setSelectedStyle(style);
+
+    // If logged in, auto-create a notebook immediately and jump into editor.
+    if (user && extractedText) {
+      const nb = saveNotebook({
+        userId: user.id,
+        title: `Notebook ${new Date().toLocaleString()}`,
+        text: extractedText,
+        paperStyle: selectedPaperStyle,
+        fontStyle: style,
+      });
+      navigate(`/notebook/${nb.id}`);
+    }
+  };
   
   const downloadAsImage = () => {
     if (!textBoxRef.current) return;
@@ -584,7 +600,7 @@ const Digi: React.FC = () => {
             <div className="flex flex-col md:flex-row gap-6">
               {/* Handwritten Style Option */}
               <motion.button
-                onClick={() => setSelectedStyle("handwritten")}
+                onClick={() => handleChooseFontStyle("handwritten")}
                 className="relative"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.98 }}
@@ -609,7 +625,7 @@ const Digi: React.FC = () => {
 
               {/* Text Font Option */}
               <motion.button
-                onClick={() => setSelectedStyle("text")}
+                onClick={() => handleChooseFontStyle("text")}
                 className="relative"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.98 }}
