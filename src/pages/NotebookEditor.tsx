@@ -5,13 +5,14 @@ import html2canvas from "html2canvas";
 
 import back from "../assets/back.png";
 import header from "../assets/header.png";
-import { useAuth } from "../context/AuthContext";
 import {
   appendToNotebookText,
   getNotebookById,
   updateNotebook,
 } from "../utils/notebookStorage";
 import type { SavedNotebook } from "../utils/notebookStorage";
+
+const GUEST_USER_ID = "guest";
 
 type PaperStyle =
   | "classic"
@@ -55,7 +56,6 @@ const getFontFamily = (fontStyle: string) => {
 const NotebookEditor = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
 
   const [notebook, setNotebook] = useState<SavedNotebook | null>(null);
   const [title, setTitle] = useState("");
@@ -72,15 +72,11 @@ const NotebookEditor = () => {
 
   useEffect(() => {
     setIsLoading(true);
-    if (!user) {
-      navigate("/login");
-      return;
-    }
     if (!id) {
       navigate("/SavedNotebooks");
       return;
     }
-    const nb = getNotebookById(id, user.id);
+    const nb = getNotebookById(id, GUEST_USER_ID);
     if (!nb) {
       navigate("/SavedNotebooks");
       return;
@@ -91,14 +87,14 @@ const NotebookEditor = () => {
     setPaperStyle((nb.paperStyle as PaperStyle) || "classic");
     setFontStyle((nb.fontStyle as FontStyle) || "text");
     setIsLoading(false);
-  }, [id, user, navigate]);
+  }, [id, navigate]);
 
   const paperClass = useMemo(() => getPaperStyleClass(paperStyle), [paperStyle]);
   const fontFamily = useMemo(() => getFontFamily(fontStyle), [fontStyle]);
 
   const handleSave = () => {
-    if (!user || !notebook) return;
-    const updated = updateNotebook(notebook.id, user.id, {
+    if (!notebook) return;
+    const updated = updateNotebook(notebook.id, GUEST_USER_ID, {
       title: title.trim() || notebook.title,
       text,
       paperStyle,
@@ -194,7 +190,7 @@ const NotebookEditor = () => {
   };
 
   const appendFromFile = async (file: File) => {
-    if (!user || !notebook) return;
+    if (!notebook) return;
 
     setAppendError(null);
     setIsAppending(true);
@@ -231,7 +227,7 @@ const NotebookEditor = () => {
         return;
       }
 
-      const updated = appendToNotebookText(notebook.id, user.id, newText);
+      const updated = appendToNotebookText(notebook.id, GUEST_USER_ID, newText);
       if (updated) {
         setNotebook(updated);
         setText(updated.text);
@@ -260,7 +256,7 @@ const NotebookEditor = () => {
     }
   };
 
-  if (isLoading || !user || !notebook) {
+  if (isLoading || !notebook) {
     return (
       <div className="min-h-screen w-full bg-lined-paper flex items-center justify-center">
         <p className="text-xl font-mynerve text-zinc-600">Loading notebook...</p>

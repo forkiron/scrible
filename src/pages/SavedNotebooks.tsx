@@ -1,29 +1,25 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { useAuth } from '../context/AuthContext';
 import { getSavedNotebooks, deleteNotebook } from '../utils/notebookStorage';
 import type { SavedNotebook } from '../utils/notebookStorage';
 import header from '../assets/header.png';
 import back from '../assets/back.png';
 
+const GUEST_USER_ID = "guest";
+
 const SavedNotebooks = () => {
-  const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [notebooks, setNotebooks] = useState<SavedNotebook[]>([]);
 
   useEffect(() => {
-    if (!user) {
-      navigate('/login');
-      return;
-    }
-    setNotebooks(getSavedNotebooks(user.id));
-  }, [user, navigate]);
+    setNotebooks(getSavedNotebooks(GUEST_USER_ID));
+  }, []);
 
   const handleDelete = (notebookId: string) => {
-    if (user && window.confirm('Are you sure you want to delete this notebook?')) {
-      deleteNotebook(notebookId, user.id);
-      setNotebooks(getSavedNotebooks(user.id));
+    if (window.confirm('Are you sure you want to delete this notebook?')) {
+      deleteNotebook(notebookId, GUEST_USER_ID);
+      setNotebooks(getSavedNotebooks(GUEST_USER_ID));
     }
   };
 
@@ -43,8 +39,6 @@ const SavedNotebooks = () => {
   const getFontFamily = (fontStyle: string) => {
     return fontStyle === 'handwritten' ? 'caveat, cursive' : 'varela round, sans-serif';
   };
-
-  if (!user) return null;
 
   return (
     <div className="min-h-screen w-full bg-lined-paper relative overflow-x-hidden font-mynerve">
@@ -66,21 +60,11 @@ const SavedNotebooks = () => {
 
       {/* Header Logo */}
       <motion.div
-        className="absolute top-6 right-6 md:right-12 z-20 flex items-center gap-4"
+        className="absolute top-6 right-6 md:right-12 z-20"
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
       >
-        <div className="text-right">
-          <p className="text-sm text-zinc-600">Logged in as</p>
-          <p className="font-bold text-zinc-800">{user.name}</p>
-        </div>
-        <button
-          onClick={logout}
-          className="sketchy-button-white text-sm px-4 py-2"
-        >
-          Logout
-        </button>
         <img src={header} alt="Scrible" className="w-40 md:w-48 h-auto" />
       </motion.div>
 

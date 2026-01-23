@@ -7,8 +7,22 @@ import header from "../assets/header.png";
 import smile from "../assets/smile.gif";
 import html2canvas from "html2canvas";
 import { useRef } from "react";
-import { useAuth } from "../context/AuthContext";
 import { saveNotebook } from "../utils/notebookStorage";
+
+const GUEST_USER_ID = "guest";
+
+const getPaperStyleClass = (style: string) => {
+  const styleMap: Record<string, string> = {
+    classic: "paper-classic",
+    blue: "paper-blue",
+    green: "paper-green",
+    purple: "paper-purple",
+    grid: "paper-grid",
+    parchment: "paper-parchment",
+    minimal: "paper-minimal",
+  };
+  return styleMap[style] || "paper-classic";
+};
 
 const Digi: React.FC = () => {
   const [isClicked, setIsClicked] = useState(false);
@@ -20,19 +34,16 @@ const Digi: React.FC = () => {
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [selectedStyle, setSelectedStyle] = useState<string | null>(null);
   const [selectedPaperStyle, setSelectedPaperStyle] = useState<string>("classic");
-  const [showSaveDialog, setShowSaveDialog] = useState(false);
-  const [notebookTitle, setNotebookTitle] = useState("");
-  const { user } = useAuth();
   const navigate = useNavigate();
   const textBoxRef = useRef<HTMLDivElement | null>(null);
 
   const handleChooseFontStyle = (style: "handwritten" | "text") => {
     setSelectedStyle(style);
 
-    // If logged in, auto-create a notebook immediately and jump into editor.
-    if (user && extractedText) {
+    // Auto-create a notebook immediately and jump into editor.
+    if (extractedText) {
       const nb = saveNotebook({
-        userId: user.id,
+        userId: GUEST_USER_ID,
         title: `Notebook ${new Date().toLocaleString()}`,
         text: extractedText,
         paperStyle: selectedPaperStyle,
@@ -475,54 +486,28 @@ const Digi: React.FC = () => {
                   </svg>
                   Download
                 </motion.button>
-                {user && (
-                  <motion.button
-                    className="sketchy-button-purple text-lg md:text-xl px-8 py-3 shadow-[4px_4px_0px_black] hover:shadow-[6px_6px_0px_black] active:shadow-none active:translate-x-1 active:translate-y-1 transition-all flex items-center gap-2"
-                    onClick={() => setShowSaveDialog(true)}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.3 }}
+                <motion.button
+                  className="sketchy-button-white text-lg md:text-xl px-8 py-3 shadow-[4px_4px_0px_black] hover:shadow-[6px_6px_0px_black] active:shadow-none active:translate-x-1 active:translate-y-1 transition-all flex items-center gap-2"
+                  onClick={() => navigate("/SavedNotebooks")}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                >
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    viewBox="0 0 24 24"
                   >
-                    <svg
-                      className="w-5 h-5"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M5 13l4 4L19 7"
-                      />
-                    </svg>
-                    Save
-                  </motion.button>
-                )}
-                {user && (
-                  <motion.button
-                    className="sketchy-button-white text-lg md:text-xl px-8 py-3 shadow-[4px_4px_0px_black] hover:shadow-[6px_6px_0px_black] active:shadow-none active:translate-x-1 active:translate-y-1 transition-all flex items-center gap-2"
-                    onClick={() => navigate("/SavedNotebooks")}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.4 }}
-                  >
-                    <svg
-                      className="w-5 h-5"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-                      />
-                    </svg>
-                    My Notebooks
-                  </motion.button>
-                )}
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                    />
+                  </svg>
+                  My Notebooks
+                </motion.button>
               </div>
             )}
           </motion.div>
@@ -692,62 +677,6 @@ const Digi: React.FC = () => {
           </motion.div>
         )}
 
-        {/* Save Dialog */}
-        {showSaveDialog && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <motion.div
-              className="bg-white border-[3px] border-zinc-900 rounded-[255px_15px_225px_15px/15px_225px_15px_255px] p-8 max-w-md w-full shadow-[10px_10px_0px_rgba(0,0,0,0.2)]"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-            >
-              <h3 className="text-2xl font-bold mb-4">Save Notebook</h3>
-              <input
-                type="text"
-                value={notebookTitle}
-                onChange={(e) => setNotebookTitle(e.target.value)}
-                placeholder="Enter notebook title..."
-                className="w-full px-4 py-3 border-[2px] border-zinc-900 rounded-lg font-mynerve text-lg mb-4 focus:outline-none focus:ring-2 focus:ring-purple-500"
-              />
-              <div className="flex gap-4">
-                <button
-                  onClick={handleSaveNotebook}
-                  className="flex-1 sketchy-button-purple text-lg px-6 py-3"
-                >
-                  Save
-                </button>
-                <button
-                  onClick={() => {
-                    setShowSaveDialog(false);
-                    setNotebookTitle("");
-                  }}
-                  className="flex-1 sketchy-button-white text-lg px-6 py-3"
-                >
-                  Cancel
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        )}
-
-        {/* Login Prompt */}
-        {extractedText && selectedStyle && !user && (
-          <motion.div
-            className="mt-8 text-center"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 }}
-          >
-            <p className="text-zinc-600 mb-4">
-              Want to save your notebooks?{" "}
-              <button
-                onClick={() => navigate("/login")}
-                className="text-purple-600 font-bold underline hover:text-purple-800"
-              >
-                Login or Sign Up
-              </button>
-            </p>
-          </motion.div>
-        )}
       </div>
 
       {/* Notebook margin line */}
